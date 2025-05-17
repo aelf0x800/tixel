@@ -40,7 +40,6 @@ typedef struct {
  */
 static int  tixel_init(Tixel* self, unsigned width, unsigned height);
 static void tixel_deinit(Tixel* self);
-
 /*
  * Primitive drawing function definitions
  */
@@ -126,18 +125,6 @@ void tixel_draw_ellipse_lines(
     float      radius_h,
     float      radius_v,
     TixelColor color
-);
-/*
- * Text drawing function definitions
- */
-// Draw text
-void tixel_draw_text(
-    Tixel*      self, 
-    unsigned    x, 
-    unsigned    y, 
-    const char* txt, 
-    TixelColor  fg,
-    TixelColor  bg  
 );
 
 /*
@@ -253,6 +240,133 @@ void tixel_draw_buffer(
                 tixel_draw_pixel(self, x + x_off, y + y_off, color);
         }
 }
+
+/*
+ * Shape drawing function definitions
+ */
+// Draw a line
+void tixel_draw_line(
+    Tixel*     self, 
+    unsigned   x0, 
+    unsigned   y0,
+    unsigned   x1, 
+    unsigned   y1, 
+    TixelColor color
+) {
+    int x_diff = abs(x1 - x0);
+    int x_inc  = x0 < x1 ? 1 : -1;
+    int y_diff = -abs(y1 - y0);
+    int y_inc  = y0 < y1 ? 1 : -1;
+    int error  = x_diff + y_diff;
+
+    while (1) {
+        tixel_draw_pixel(self, x0, y0, color);
+
+        int error_2 = 2 * error;
+        
+        if (error_2 >= y_diff) {
+            if (x0 == x1) 
+                break;
+            error += y_diff;
+            x0    += x_inc;
+        }
+        
+        if (error_2 <= x_diff) {
+            if (y0 == y1) 
+                break;
+            error += x_diff;
+            y0    += y_inc;
+        }
+    }
+}
+
+// Draw a filled in rectangle
+void tixel_draw_rectangle(
+    Tixel*     self, 
+    unsigned   x, 
+    unsigned   y,
+    unsigned   width, 
+    unsigned   height, 
+    TixelColor color
+) {
+    for (unsigned y0 = y; y0 < y + height; y0++)
+        for (unsigned x0 = x; x0 < x + width; x0++)
+            // Only draw if in bounds
+            if (x0 < self->width && y0 < self->height)
+                tixel_draw_pixel(self, x0, y0, color);
+}
+
+// Draw the lines of a rectangle
+void tixel_draw_rectangle_lines(
+    Tixel*     self, 
+    unsigned   x, 
+    unsigned   y, 
+    unsigned   width, 
+    unsigned   height, 
+    TixelColor color
+) {
+    for (unsigned y0 = y; y0 < y + height; y0++)
+        for (unsigned x0 = x; x0 < x + width; x0++)
+        {
+            // Skip the center
+            if (x0 != x && 
+                y0 != y && 
+                x0 != x + width - 1 && 
+                y0 != y + height - 1)
+                continue;
+
+            // Only draw if in bounds
+            if (x0 < self->width && y0 < self->height)
+                tixel_draw_pixel(self, x0, y0, color);
+        }
+}
+
+// Draw a filled in triangle
+void tixel_draw_triangle(
+    Tixel*     self, 
+    unsigned   x0, 
+    unsigned   y0, 
+    unsigned   x1, 
+    unsigned   y1, 
+    unsigned   x2, 
+    unsigned   y2, 
+    TixelColor color
+);
+// Draw the lines of triangle
+void tixel_draw_triangle_lines(
+    Tixel*   self, 
+    unsigned   x0, 
+    unsigned   y0, 
+    unsigned   x1, 
+    unsigned   y1, 
+    unsigned   x2, 
+    unsigned   y2, 
+    TixelColor color
+) {
+    tixel_draw_line(self, x0, y0, x1, y1, color);
+    tixel_draw_line(self, x1, y1, x2, y2, color);
+    tixel_draw_line(self, x2, y2, x0, y0, color);
+}
+
+// Draw a filled in ellipse
+void tixel_draw_ellipse(
+    Tixel*     self, 
+    unsigned   x, 
+    unsigned   y, 
+    float      radius_h,
+    float      radius_v,
+    TixelColor color
+);
+// Draw the lines of an ellipse
+void tixel_draw_ellipse_lines(
+    Tixel*     self, 
+    unsigned   x, 
+    unsigned   y, 
+    float      radius_h,
+    float      radius_v,
+    TixelColor color
+);
+
 
 #endif // TIXEL_IMPLEMENTATION
 

@@ -21,7 +21,10 @@ int main(void) {
                 tixel_draw_pixel(&t, x, y, (TixelColor){0, 0, 255});
 
     // Draw image
-    tixel_draw_buffer(&t, 0, 0, w, h, buffer);
+    //tixel_draw_buffer(&t, 0, 0, w, h, buffer);
+    tixel_draw_line(&t, 40, 40, 0, 80, (TixelColor){0, 255, 0});
+    //tixel_draw_rectangle_lines(&t, 0, 0, 50, 50, (TixelColor){255, 255, 0});
+    tixel_draw_triangle_lines(&t, 40, 0, 80, 20, 0, 40, (TixelColor){255, 255, 0});
 
     tixel_show(&t);
     sleep(3);
