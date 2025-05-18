@@ -33,12 +33,13 @@
 /*
  * Predefined error values
  */
-#define TIXEL_OK                                  0
-#define TIXEL_ERROR_BAD_DIMENSIONS               -1
-#define TIXEL_ERROR_PIXEL_ALLOC_FAILED           -2
-#define TIXEL_ERROR_FAILED_TO_STORE_ORIG_STATE   -3
-#define TIXEL_ERROR_FAILED_TO_ENTER_RAW_MODE     -4
-#define TIXEL_ERROR_FAILED_TO_RESTORE_ORIG_STATE -5
+#define TIXEL_OK                               0
+#define TIXEL_ERROR_BAD_DIMENSIONS            -1
+#define TIXEL_ERROR_PIXEL_ALLOC_FAILED        -2
+#define TIXEL_ERROR_FAILED_STORE_ORIG_STATE   -3
+#define TIXEL_ERROR_FAILED_ENTER_RAW_MODE     -4
+#define TIXEL_ERROR_FAILED_RESTORE_ORIG_STATE -5
+#define TIXEL_ERROR_FAILED_READ_STDIN         -6
 
 /*
  * Min & max macros
@@ -77,6 +78,124 @@ typedef enum {
 #define TIXEL_CTRL(C) (C & 0x1f)
 
 /*
+ * Keyboard keys
+ * NOTE : This is only standard ASCII not extended
+ */
+typedef enum {
+    TIXEL_KEY_NONE = 0,
+
+    // Punctuation keys
+    TIXEL_KEY_EXCLAMATION = '!',
+    TIXEL_KEY_DBL_QUOTE,
+    TIXEL_KEY_,
+    TIXEL_KEY_DOLLAR,
+    TIXEL_KEY_PERCENT,
+    TIXEL_KEY_AMPERSAND,
+    TIXEL_KEY_SGL_QUOTE,
+    TIXEL_KEY_OPEN_PAREN,
+    TIXEL_KEY_CLOSE_PAREN,
+    TIXEL_KEY_ASTERISK,
+    TIXEL_KEY_PLUS,
+    TIXEL_KEY_COMMA,
+    TIXEL_KEY_MINUS,
+    TIXEL_KEY_PERIOD,
+    TIXEL_KEY_FWD_SLASH,
+    TIXEL_KEY_COLON = ':',
+    TIXEL_KEY_SEMI_COLON,
+    TIXEL_KEY_LESS_THAN,
+    TIXEL_KEY_EQUALS,
+    TIXEL_KEY_GREATER_THAN,
+    TIXEL_KEY_QUESTION_MARK,
+    TIXEL_KEY_AT,
+    TIXEL_KEY_OPEN_BRACKET = '[',
+    TIXEL_KEY_CLOSE_BRACKET,
+    TIXEL_KEY_CARET,
+    TIXEL_KEY_UNDERSCORE,
+    TIXEL_KEY_GRAVE,
+    TIXEL_KEY_OPEN_BRACE = '{',
+    TIXEL_KEY_VERT_BAR,
+    TIXEL_KEY_CLOSE_BRACE,
+    TIXEL_KEY_TILDE,
+
+    // Number keys
+    TIXEL_KEY_0 = '0',
+    TIXEL_KEY_1,
+    TIXEL_KEY_2,
+    TIXEL_KEY_3,
+    TIXEL_KEY_4,
+    TIXEL_KEY_5,
+    TIXEL_KEY_6,
+    TIXEL_KEY_7,
+    TIXEL_KEY_8,
+    TIXEL_KEY_9,
+
+    // Upper case letters
+    TIXEL_KEY_UPR_A = 'A',
+    TIXEL_KEY_UPR_B,
+    TIXEL_KEY_UPR_C,
+    TIXEL_KEY_UPR_D,
+    TIXEL_KEY_UPR_E,
+    TIXEL_KEY_UPR_F,
+    TIXEL_KEY_UPR_G,
+    TIXEL_KEY_UPR_H,
+    TIXEL_KEY_UPR_I,
+    TIXEL_KEY_UPR_J,
+    TIXEL_KEY_UPR_K,
+    TIXEL_KEY_UPR_L,
+    TIXEL_KEY_UPR_M,
+    TIXEL_KEY_UPR_N,
+    TIXEL_KEY_UPR_O,
+    TIXEL_KEY_UPR_P,
+    TIXEL_KEY_UPR_Q,
+    TIXEL_KEY_UPR_R,
+    TIXEL_KEY_UPR_S,
+    TIXEL_KEY_UPR_T,
+    TIXEL_KEY_UPR_W,
+    TIXEL_KEY_UPR_X,
+    TIXEL_KEY_UPR_Y,
+    TIXEL_KEY_UPR_Z,
+
+    // Lowercase letters
+    TIXEL_KEY_LWR_A = 'a',
+    TIXEL_KEY_LWR_B,
+    TIXEL_KEY_LWR_C,
+    TIXEL_KEY_LWR_D,
+    TIXEL_KEY_LWR_E,
+    TIXEL_KEY_LWR_F,
+    TIXEL_KEY_LWR_G,
+    TIXEL_KEY_LWR_H,
+    TIXEL_KEY_LWR_I,
+    TIXEL_KEY_LWR_J,
+    TIXEL_KEY_LWR_K,
+    TIXEL_KEY_LWR_L,
+    TIXEL_KEY_LWR_M,
+    TIXEL_KEY_LWR_N,
+    TIXEL_KEY_LWR_O,
+    TIXEL_KEY_LWR_P,
+    TIXEL_KEY_LWR_Q,
+    TIXEL_KEY_LWR_R,
+    TIXEL_KEY_LWR_S,
+    TIXEL_KEY_LWR_T,
+    TIXEL_KEY_LWR_W,
+    TIXEL_KEY_LWR_X,
+    TIXEL_KEY_LWR_Y,
+    TIXEL_KEY_LWR_Z,
+
+    // Arrow keys
+    TIXEL_KEY_UP    = -1,
+    TIXEL_KEY_DOWN  = -2,
+    TIXEL_KEY_LEFT  = -3,
+    TIXEL_KEY_RIGHT = -4,
+
+    // Other keys
+    TIXEL_KEY_BACKSPACE = 8,
+    TIXEL_KEY_TAB       = 9,
+    TIXEL_KEY_ESCAPE    = 27,
+    TIXEL_KEY_SPACE     = 32,
+    TIXEL_KEY_DELETE    = 127,
+} TixelKey;
+
+/*
  * Mouse buttons
  */
 typedef enum {
@@ -92,7 +211,7 @@ typedef struct {
     // Event type
     TixelEventType type;
     // User input
-    char          key;
+    TixelKey      key;
     unsigned      mouse_x;
     unsigned      mouse_y;
     TixelMouseBtn mouse_btn;
@@ -190,7 +309,7 @@ void tixel_draw_triangle_lines(
  * Event handling functions
  */
 // See if an event has occured
-void tixel_poll_event(Tixel* self, TixelEvent* event);
+int tixel_poll_event(Tixel* self, TixelEvent* event);
 
 /*
  * Provide the bodies for the functions
@@ -219,7 +338,7 @@ static int tixel_init(Tixel* self, unsigned width, unsigned height) {
 
     // Store original terminal state
     if (tcgetattr(STDIN_FILENO, &self->orig_state) == -1)
-        return TIXEL_ERROR_FAILED_TO_STORE_ORIG_STATE;
+        return TIXEL_ERROR_FAILED_STORE_ORIG_STATE;
 
     // Set raw mode flags
     self->raw_state.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
@@ -231,7 +350,7 @@ static int tixel_init(Tixel* self, unsigned width, unsigned height) {
     self->raw_state.c_cc[VTIME] = 1;
     // Enter raw mode
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &self->raw_state) == -1)
-        return TIXEL_ERROR_FAILED_TO_ENTER_RAW_MODE;
+        return TIXEL_ERROR_FAILED_ENTER_RAW_MODE;
 
     // Set default quit key
     self->quit_key = TIXEL_CTRL('q');
@@ -242,7 +361,7 @@ static int tixel_init(Tixel* self, unsigned width, unsigned height) {
 static int tixel_deinit(Tixel* self) {
     // Exit raw mode, clear terminal and show cursor
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &self->orig_state) == -1)
-        return TIXEL_ERROR_FAILED_TO_RESTORE_ORIG_STATE;
+        return TIXEL_ERROR_FAILED_RESTORE_ORIG_STATE;
     printf("\x1b[0m\x1b[2J\x1b[H\x1b[?25h");
 
     // Free memory and zero the struct
@@ -465,20 +584,57 @@ void tixel_draw_triangle_lines(
  * Event handling functions
  */
 // See if an event has occured
-void tixel_poll_event(Tixel* self, TixelEvent* event) {
+int tixel_poll_event(Tixel* self, TixelEvent* event) {
     // Reset event struct
     memset(event, 0, sizeof(TixelEvent));
 
     // Poll for keyboard
-    read(STDIN_FILENO, &event->key, 1);
-    if (event->key != 0)
-        event->type = TIXEL_EVENT_TYPE_KEY_PRESS; 
+    if (read(STDIN_FILENO, &event->key, 1) == -1)
+        return TIXEL_ERROR_FAILED_READ_STDIN;
+  
+    // Handle arrow keys
+    if (event->key == '\x1b') {
+        // Read the rest of the escape code
+        char code[3];
+        if (read(STDIN_FILENO, &code[0], 1) == -1)
+            return TIXEL_ERROR_FAILED_READ_STDIN;
+        if (read(STDIN_FILENO, &code[1], 1) == -1)
+            return TIXEL_ERROR_FAILED_READ_STDIN;
 
-    // Check if quit has been requested
-    if (event->key == self->quit_key)
+        // Decide which arrow key
+        if (code[0] == '[') {
+            event->type = TIXEL_EVENT_TYPE_KEY_PRESS;
+            switch (code[1]) {
+                case 'A':
+                    event->key = TIXEL_KEY_UP;
+                    break;
+                case 'B':
+                    event->key = TIXEL_KEY_DOWN;
+                    break;
+                case 'C':
+                    event->key = TIXEL_KEY_LEFT;
+                    break;
+                case 'D':
+                    event->key = TIXEL_KEY_RIGHT;
+                    break;
+                default:
+                    event->type = TIXEL_EVENT_TYPE_NONE;
+                    event->key  = TIXEL_KEY_NONE;
+                    break;
+            }
+        } else {
+            event->type = TIXEL_EVENT_TYPE_NONE;
+            event->key  = TIXEL_KEY_NONE;
+        }
+    // Handle the quit key
+    } else if (event->key == self->quit_key) { 
         event->type = TIXEL_EVENT_TYPE_QUIT;
+        event->key  = TIXEL_KEY_NONE;
+    // Handle normal keys
+    } else if (event->key != TIXEL_KEY_NONE) 
+        event->type = TIXEL_EVENT_TYPE_KEY_PRESS;
 
-    // TODO : mouse events
+    return TIXEL_OK;
 }
 
 #endif // TIXEL_IMPLEMENTATION
