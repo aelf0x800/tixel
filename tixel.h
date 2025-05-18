@@ -548,32 +548,30 @@ void tixel_draw_triangle(
     unsigned far_y = TIXEL_MAX(y0, TIXEL_MAX(y1, y2));
     for (unsigned y = clo_y; y < far_y; y++) {
         // Find start of triangle on the scanline
-        unsigned x = clo_x;
+        unsigned start = clo_x;
         while (
-            x < far_x &&
-            x < self->width && 
-            !TIXEL_COLOR_EQ(self->pixels[y * self->width + x], color)
-        ) x++;
+            start < far_x &&
+            start < self->width && 
+            !TIXEL_COLOR_EQ(self->pixels[y * self->width + start], color)
+        ) start++;
         
-        // Get width of triangle on the scanline
-        unsigned width = 1;
-        while (1) {
-            // If the opposite end has not been reached
-            if (x + width == far_x || x + width == self->width) {
-                width = 1;
-                break;
-            }
+        // Get opposite side of the triangle on the scanline
+        unsigned end = start + 1;
+        while (
+            end < far_x && 
+            end < self->width && 
+            !TIXEL_COLOR_EQ(self->pixels[y * self->width + end], color)
+        ) end++;
 
-            // Check if the opposite has been reached
-            if (TIXEL_COLOR_EQ(self->pixels[y * self->width + x + width], color))
-                break;
-
-            width++;
-        }
+        // Handle 1 pixel wide triangle scanline
+        if (end >= far_x || end >= self->width)
+            end = start;
 
         // Fill the scanline region
-        for (unsigned i = 0; i < width; i++)
-            self->pixels[y * self->width + x + i] = color;
+        while (start < end) {
+            self->pixels[y * self->width + start] = color;
+            start++;
+        }
     }
 }
 
