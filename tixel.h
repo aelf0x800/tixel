@@ -559,8 +559,10 @@ void tixel_draw_triangle(
         unsigned width = 1;
         while (1) {
             // If the opposite end has not been reached
-            if (x + width == far_x || x + width == self->width)
+            if (x + width == far_x || x + width == self->width) {
+                width = 1;
                 break;
+            }
 
             // Check if the opposite has been reached
             if (TIXEL_COLOR_EQ(self->pixels[y * self->width + x + width], color))
