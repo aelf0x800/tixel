@@ -67,7 +67,7 @@ typedef struct {
 typedef enum {
     TIXEL_FORMAT_RGB888   = 3, // 3 components per pixel
     TIXEL_FORMAT_RGBA8888 = 4, // 4 components per pixel
-} TixelFormat
+} TixelFormat;
 
 /*
  * Tixel event types
