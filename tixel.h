@@ -62,6 +62,14 @@ typedef struct {
 } TixelColor;
 
 /*
+ * Buffer formats
+ */
+typedef enum {
+    TIXEL_FORMAT_RGB888   = 3, // 3 components per pixel
+    TIXEL_FORMAT_RGBA8888 = 4, // 4 components per pixel
+} TixelFormat
+
+/*
  * Tixel event types
  */
 typedef enum {
@@ -422,15 +430,16 @@ void tixel_draw_buffer(
     unsigned       y_off,
     unsigned       width, 
     unsigned       height, 
-    unsigned char* buffer
+    unsigned char* buffer,
+    TixelFormat    fmt
 ) {
     // This assumes the buffer is data in the buffer has 3 components per pixel
     for (unsigned y = 0; y < height; y++)
         for (unsigned x = 0; x < width; x++) {
             TixelColor color = {
-                .r = buffer[y * (width * 3) + x * 3],
-                .g = buffer[y * (width * 3) + x * 3 + 1],
-                .b = buffer[y * (width * 3) + x * 3 + 2]
+                .r = buffer[y * (width * fmt) + x * fmt],
+                .g = buffer[y * (width * fmt) + x * fmt + 1],
+                .b = buffer[y * (width * fmt) + x * fmt + 2]
             };
             if (x + x_off < self->width && y + y_off < self->height)
                 tixel_draw_pixel(self, x + x_off, y + y_off, color);

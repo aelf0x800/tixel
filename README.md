@@ -7,5 +7,5 @@ A header only library for graphics in the terminal
 
 # TODO
 - [x] Shape functions
-- [ ] Add support for varying components per pixel with tixel_draw_buffer
-- [ ] Event handling
+- [X] Add support for varying components per pixel with tixel_draw_buffer
+- [X] Event handling
