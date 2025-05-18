@@ -260,7 +260,8 @@ void tixel_draw_buffer(
     unsigned       y_off,
     unsigned       width, 
     unsigned       height, 
-    unsigned char* buffer
+    unsigned char* buffer,
+    TixelFormat    fmt
 );
 /*
  * Shape drawing function definitions
