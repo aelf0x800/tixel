@@ -356,6 +356,7 @@ static int tixel_init(Tixel* self, unsigned width, unsigned height) {
         return TIXEL_ERROR_FAILED_STORE_ORIG_STATE;
 
     // Set raw mode flags
+    // NOTE : most of these flags are default anyways
     self->raw_state.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     self->raw_state.c_oflag &= ~OPOST;
     self->raw_state.c_cflag |= CS8;
@@ -394,15 +395,16 @@ static int tixel_deinit(Tixel* self) {
 // Displays the pixel buffer
 static void tixel_show(Tixel* self) {
     // Clear the terminal and hide the cursor
-    printf("\x1b[0m\x1b[2J\x1b[H\x1b[?25l");
+    printf("\x1b[0m\x1b[H\x1b[3J\x1b[?25l");
 
+    // Draw the pixels
     for (unsigned y = 0; y < self->height; y += 2) {
         for (unsigned x = 0; x < self->width; x++) {
-            // Set the top pixel color
+            // Set top pixel color
             TixelColor top = self->pixels[y * self->width + x];
             printf("\x1b[38;2;%d;%d;%dm", top.r, top.g, top.b);
-            
-            // Set the bottom pixel color
+
+            // Set bottom pixel color
             if (y + 1 < self->height) {
                 TixelColor bot = self->pixels[(y + 1) * self->width + x];
                 printf("\x1b[48;2;%d;%d;%dm", bot.r, bot.g, bot.b);
@@ -411,9 +413,9 @@ static void tixel_show(Tixel* self) {
             // Show the pixel
             printf("▀");
         }
-
+      
         // Move cursor to next row
-        printf("\x1b[B\x1b[1G");
+        printf("\x1b[1E");
     }
 }
 
