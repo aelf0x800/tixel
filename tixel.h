@@ -405,10 +405,12 @@ static void tixel_show(Tixel* self) {
             printf("\x1b[38;2;%d;%d;%dm", top.r, top.g, top.b);
 
             // Set bottom pixel color
-            if (y + 1 < self->height) {
+            if (y + 1 != self->height) {
                 TixelColor bot = self->pixels[(y + 1) * self->width + x];
                 printf("\x1b[48;2;%d;%d;%dm", bot.r, bot.g, bot.b);
-            }
+            // If there is not a bottom pixel just use terminal background
+            } else
+                printf("\x1b[40m");
 
             // Show the pixel
             printf("▀");
