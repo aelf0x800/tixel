@@ -10,24 +10,22 @@ int main(void) {
    
     // Load test image
     int w, h, c;
-    unsigned char* buffer = stbi_load("sun.png", &w, &h, &c, 3);
+    unsigned char* buffer = stbi_load("sun2.png", &w, &h, &c, 3);
 
-    printf("%d, %d, %d\n", buffer[300], buffer[104], buffer[105]); 
+    TixelEvent ev;
+    while (ev.type != TIXEL_EVENT_TYPE_QUIT) {
+        // Draw a blue pattern
+        for (int y = 0; y < 200; y++)
+            for (int x = 0; x < 200; x++)
+                if (y % 2 == 0)
+                    tixel_draw_pixel(&t, x, y, (TixelColor){0, 0, 255});
 
-    // Draw a blue pattern
-    for (int y = 0; y < 200; y++)
-        for (int x = 0; x < 200; x++)
-            if (y % 2 == 0)
-                tixel_draw_pixel(&t, x, y, (TixelColor){0, 0, 255});
+        tixel_draw_buffer(&t, 0, 0, w, h, buffer);
+        tixel_draw_triangle_lines(&t, 10, 10, 40, 50, 20, 50, (TixelColor){255, 0, 255});
+        tixel_show(&t);
+        tixel_poll_event(&t, &ev);
+    }
 
-    // Draw image
-    //tixel_draw_buffer(&t, 0, 0, w, h, buffer);
-    tixel_draw_line(&t, 40, 40, 0, 80, (TixelColor){0, 255, 0});
-    //tixel_draw_rectangle_lines(&t, 0, 0, 50, 50, (TixelColor){255, 255, 0});
-    tixel_draw_triangle_lines(&t, 40, 0, 80, 20, 0, 40, (TixelColor){255, 255, 0});
-
-    tixel_show(&t);
-    sleep(3);
     tixel_deinit(&t);
     stbi_image_free(buffer);
     return 0;

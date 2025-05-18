@@ -10,12 +10,15 @@
 /*
  * Predefined error values
  */
-#define TIXEL_OK                       0
-#define TIXEL_ERROR_BAD_DIMENSIONS     -1
-#define TIXEL_ERROR_PIXEL_ALLOC_FAILED -2
+#define TIXEL_OK                                  0
+#define TIXEL_ERROR_BAD_DIMENSIONS               -1
+#define TIXEL_ERROR_PIXEL_ALLOC_FAILED           -2
+#define TIXEL_ERROR_FAILED_TO_STORE_ORIG_STATE   -3
+#define TIXEL_ERROR_FAILED_TO_ENTER_RAW_MODE     -4
+#define TIXEL_ERROR_FAILED_TO_RESTORE_ORIG_STATE -5
 
 /*
- * RRGGBB color
+ * RGB color
  */
 typedef struct {
     unsigned char r;
@@ -24,22 +27,64 @@ typedef struct {
 } TixelColor;
 
 /*
+ * Tixel event types
+ */
+typedef enum {
+    TIXEL_EVENT_TYPE_NONE,
+    TIXEL_EVENT_TYPE_QUIT,
+    TIXEL_EVENT_TYPE_KEY_PRESS,
+    TIXEL_EVENT_TYPE_MOUSE_MOVE,
+    TIXEL_EVENT_TYPE_MOUSE_CLICK
+} TixelEventType;
+
+/*
+ * Keyboard modfiers
+ */
+#define TIXEL_CTRL(C) (C & 0x1f)
+#define TIXEL_ALT(C)  (C & 0x00) // TODO
+
+/*
+ * Mouse buttons
+ */
+typedef enum {
+    TIXEL_MOUSE_BTN_LEFT,
+    TIXEL_MOUSE_BTN_MIDDLE,
+    TIXEL_MOUSE_BTN_RIGHT
+} TixelMouseBtn;
+
+/*
+ * Tixel event structure
+ */
+typedef struct {
+    // Event type
+    TixelEventType type;
+    // User input
+    char          key;
+    unsigned      mouse_x;
+    unsigned      mouse_y;
+    TixelMouseBtn mouse_btn;
+} TixelEvent;
+
+/*
  * Tixel context structure
  */
 typedef struct {
+    // Pixel buffer
     TixelColor* pixels;
     unsigned    width;
     unsigned    height;
-    // Termios
+    // Termios terminal states
     struct termios orig_state;
     struct termios raw_state;
+    // Quit key
+    char quit_key;
 } Tixel;
 
 /*
  * Initialisation and de-initialisation function definitions
  */
-static int  tixel_init(Tixel* self, unsigned width, unsigned height);
-static void tixel_deinit(Tixel* self);
+static int tixel_init(Tixel* self, unsigned width, unsigned height);
+static int tixel_deinit(Tixel* self);
 /*
  * Primitive drawing function definitions
  */
@@ -126,6 +171,11 @@ void tixel_draw_ellipse_lines(
     float      radius_v,
     TixelColor color
 );
+/*
+ * Event handling functions
+ */
+// See if an event has occured
+void tixel_poll_event(Tixel* self, TixelEvent* event);
 
 /*
  * Provide the bodies for the functions
@@ -153,30 +203,41 @@ static int tixel_init(Tixel* self, unsigned width, unsigned height) {
         return TIXEL_ERROR_PIXEL_ALLOC_FAILED;
 
     // Store original terminal state
-    tcgetattr(STDIN_FILENO, &self->orig_state);
+    if (tcgetattr(STDIN_FILENO, &self->orig_state) == -1)
+        return TIXEL_ERROR_FAILED_TO_STORE_ORIG_STATE;
 
-    // Enter raw mode
+    // Set raw mode flags
     self->raw_state.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     self->raw_state.c_oflag &= ~OPOST;
     self->raw_state.c_cflag |= CS8;
     self->raw_state.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &self->raw_state);
+    // Time out for reading from stdin
+    self->raw_state.c_cc[VMIN]  = 0;
+    self->raw_state.c_cc[VTIME] = 1;
+    // Enter raw mode
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &self->raw_state) == -1)
+        return TIXEL_ERROR_FAILED_TO_ENTER_RAW_MODE;
+
+    // Set default quit key
+    self->quit_key = TIXEL_CTRL('q');
 
     return TIXEL_OK;
 }
 
-static void tixel_deinit(Tixel* self) {
+static int tixel_deinit(Tixel* self) {
     // Exit raw mode and clear terminal
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &self->orig_state);
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &self->orig_state) == -1)
+        return TIXEL_ERROR_FAILED_TO_RESTORE_ORIG_STATE;
     printf("\x1b[0m\x1b[2J\x1b[H");
 
     // Free memory and zero the struct
     if (self->pixels != NULL) {
         free(self->pixels);
         memset(self, 0, sizeof(Tixel));
-    }   
-}
+    }
 
+    return TIXEL_OK;
+}
 
 /*
  * Primative drawing function definitions
@@ -332,6 +393,7 @@ void tixel_draw_triangle(
     unsigned   y2, 
     TixelColor color
 );
+
 // Draw the lines of triangle
 void tixel_draw_triangle_lines(
     Tixel*   self, 
@@ -367,6 +429,25 @@ void tixel_draw_ellipse_lines(
     TixelColor color
 );
 
+/*
+ * Event handling functions
+ */
+// See if an event has occured
+void tixel_poll_event(Tixel* self, TixelEvent* event) {
+    // Reset event struct
+    memset(event, 0, sizeof(TixelEvent));
+
+    // Poll for keyboard
+    read(STDIN_FILENO, &event->key, 1);
+    if (event->key != 0)
+        event->type = TIXEL_EVENT_TYPE_KEY_PRESS; 
+
+    // Check if quit has been requested
+    if (event->key == self->quit_key)
+        event->type = TIXEL_EVENT_TYPE_QUIT;
+
+    // TODO : mouse events
+}
 
 #endif // TIXEL_IMPLEMENTATION
 
