@@ -41,7 +41,7 @@
 #define TIXEL_ERROR_FAILED_TO_RESTORE_ORIG_STATE -5
 
 /*
- * Minmax macros
+ * Min & max macros
  */
 #define TIXEL_MIN(X, Y) (X < Y ? X : Y)
 #define TIXEL_MAX(X, Y) (X > Y ? X : Y)
@@ -75,7 +75,6 @@ typedef enum {
  * Keyboard modfiers
  */
 #define TIXEL_CTRL(C) (C & 0x1f)
-#define TIXEL_ALT(C)  (C & 0x00) // TODO
 
 /*
  * Mouse buttons
