@@ -190,6 +190,7 @@ typedef enum {
     // Other keys
     TIXEL_KEY_BACKSPACE = 8,
     TIXEL_KEY_TAB       = 9,
+    TIXEL_KEY_RETURN    = 13,
     TIXEL_KEY_ESCAPE    = 27,
     TIXEL_KEY_SPACE     = 32,
     TIXEL_KEY_DELETE    = 127,
