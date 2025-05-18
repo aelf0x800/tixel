@@ -6,6 +6,6 @@ A header only library for graphics in the terminal
 * Use a performant terminal emulator such as Alacritty or Kitty for the best performance.
 
 # TODO
-- [ ] Shape functions
+- [x] Shape functions
 - [ ] Add support for varying components per pixel with tixel_draw_buffer
 - [ ] Event handling

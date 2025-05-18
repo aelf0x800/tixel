@@ -18,6 +18,17 @@
 #define TIXEL_ERROR_FAILED_TO_RESTORE_ORIG_STATE -5
 
 /*
+ * Minmax macros
+ */
+#define TIXEL_MIN(X, Y) (X < Y ? X : Y)
+#define TIXEL_MAX(X, Y) (X > Y ? X : Y)
+
+/*
+ * Color comparison macro
+ */
+#define TIXEL_COLOR_EQ(C0, C1) (C0.r == C1.r && C0.g == C1.g && C0.b == C1.b)
+
+/*
  * RGB color
  */
 typedef struct {
@@ -153,24 +164,6 @@ void tixel_draw_triangle_lines(
     unsigned   y2, 
     TixelColor color
 );
-// Draw a filled in ellipse
-void tixel_draw_ellipse(
-    Tixel*     self, 
-    unsigned   x, 
-    unsigned   y, 
-    float      radius_h,
-    float      radius_v,
-    TixelColor color
-);
-// Draw the lines of an ellipse
-void tixel_draw_ellipse_lines(
-    Tixel*     self, 
-    unsigned   x, 
-    unsigned   y, 
-    float      radius_h,
-    float      radius_v,
-    TixelColor color
-);
 /*
  * Event handling functions
  */
@@ -225,10 +218,10 @@ static int tixel_init(Tixel* self, unsigned width, unsigned height) {
 }
 
 static int tixel_deinit(Tixel* self) {
-    // Exit raw mode and clear terminal
+    // Exit raw mode, clear terminal and show cursor
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &self->orig_state) == -1)
         return TIXEL_ERROR_FAILED_TO_RESTORE_ORIG_STATE;
-    printf("\x1b[0m\x1b[2J\x1b[H");
+    printf("\x1b[0m\x1b[2J\x1b[H\x1b[?25h");
 
     // Free memory and zero the struct
     if (self->pixels != NULL) {
@@ -244,8 +237,8 @@ static int tixel_deinit(Tixel* self) {
  */
 // Displays the pixel buffer
 void tixel_show(Tixel* self) {
-    // Clear the terminal
-    printf("\x1b[0m\x1b[2J\x1b[H");
+    // Clear the terminal and hide the cursor
+    printf("\x1b[0m\x1b[2J\x1b[H\x1b[?25l");
 
     for (unsigned y = 0; y < self->height; y += 2) {
         for (unsigned x = 0; x < self->width; x++) {
@@ -367,14 +360,14 @@ void tixel_draw_rectangle_lines(
     TixelColor color
 ) {
     for (unsigned y0 = y; y0 < y + height; y0++)
-        for (unsigned x0 = x; x0 < x + width; x0++)
-        {
+        for (unsigned x0 = x; x0 < x + width; x0++) {
             // Skip the center
-            if (x0 != x && 
+            if (
+                x0 != x && 
                 y0 != y && 
                 x0 != x + width - 1 && 
-                y0 != y + height - 1)
-                continue;
+                y0 != y + height - 1
+            ) continue;
 
             // Only draw if in bounds
             if (x0 < self->width && y0 < self->height)
@@ -392,7 +385,43 @@ void tixel_draw_triangle(
     unsigned   x2, 
     unsigned   y2, 
     TixelColor color
-);
+) {
+    // Draw the triangles lines
+    tixel_draw_triangle_lines(self, x0, y0, x1, y1, x2, y2, color);
+    
+    // Fill the triangle using scanlines
+    unsigned clo_x = TIXEL_MIN(x0, TIXEL_MIN(x1, x2));
+    unsigned far_x = TIXEL_MAX(x0, TIXEL_MAX(x1, x2));
+    unsigned clo_y = TIXEL_MIN(y0, TIXEL_MIN(y1, y2));
+    unsigned far_y = TIXEL_MAX(y0, TIXEL_MAX(y1, y2));
+    for (unsigned y = clo_y; y < far_y; y++) {
+        // Find start of triangle on the scanline
+        unsigned x = clo_x;
+        while (
+            x < far_x &&
+            x < self->width && 
+            !TIXEL_COLOR_EQ(self->pixels[y * self->width + x], color)
+        ) x++;
+        
+        // Get width of triangle on the scanline
+        unsigned width = 1;
+        while (1) {
+            // If the opposite end has not been reached
+            if (x + width == far_x || x + width == self->width)
+                break;
+
+            // Check if the opposite has been reached
+            if (TIXEL_COLOR_EQ(self->pixels[y * self->width + x + width], color))
+                break;
+
+            width++;
+        }
+
+        // Fill the scanline region
+        for (unsigned i = 0; i < width; i++)
+            self->pixels[y * self->width + x + i] = color;
+    }
+}
 
 // Draw the lines of triangle
 void tixel_draw_triangle_lines(
@@ -409,25 +438,6 @@ void tixel_draw_triangle_lines(
     tixel_draw_line(self, x1, y1, x2, y2, color);
     tixel_draw_line(self, x2, y2, x0, y0, color);
 }
-
-// Draw a filled in ellipse
-void tixel_draw_ellipse(
-    Tixel*     self, 
-    unsigned   x, 
-    unsigned   y, 
-    float      radius_h,
-    float      radius_v,
-    TixelColor color
-);
-// Draw the lines of an ellipse
-void tixel_draw_ellipse_lines(
-    Tixel*     self, 
-    unsigned   x, 
-    unsigned   y, 
-    float      radius_h,
-    float      radius_v,
-    TixelColor color
-);
 
 /*
  * Event handling functions

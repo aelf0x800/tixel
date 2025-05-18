@@ -21,7 +21,8 @@ int main(void) {
                     tixel_draw_pixel(&t, x, y, (TixelColor){0, 0, 255});
 
         tixel_draw_buffer(&t, 0, 0, w, h, buffer);
-        tixel_draw_triangle_lines(&t, 10, 10, 40, 50, 20, 50, (TixelColor){255, 0, 255});
+        tixel_draw_triangle(&t, 10, 10, 40, 50, 20, 50, (TixelColor){255, 0, 255});
+        tixel_draw_triangle_lines(&t, 50, 10, 80, 50, 60, 50, (TixelColor){255, 0, 255});
         tixel_show(&t);
         tixel_poll_event(&t, &ev);
     }
