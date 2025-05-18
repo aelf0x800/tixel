@@ -244,22 +244,22 @@ typedef struct {
 /*
  * Initialisation and de-initialisation function definitions
  */
-static int tixel_init(Tixel* self, unsigned width, unsigned height);
-static int tixel_deinit(Tixel* self);
+extern int tixel_init(Tixel* self, unsigned width, unsigned height);
+extern int tixel_deinit(Tixel* self);
 /*
  * Primitive drawing function definitions
  */
 // Clear the pixel buffer with a color
-static void tixel_clear(Tixel* self, TixelColor color);
+extern void tixel_clear(Tixel* self, TixelColor color);
 // Draw a pixel
-static void tixel_draw_pixel(
+extern void tixel_draw_pixel(
     Tixel*     self, 
     unsigned   x, 
     unsigned   y, 
     TixelColor color
 );
 // Copy another pixel buffer to the main one with an offset
-static void tixel_draw_buffer(
+extern void tixel_draw_buffer(
     Tixel*         self, 
     unsigned       x_off, 
     unsigned       y_off,
@@ -272,7 +272,7 @@ static void tixel_draw_buffer(
  * Shape drawing function definitions
  */
 // Draw a line
-static void tixel_draw_line(
+extern void tixel_draw_line(
     Tixel*     self, 
     unsigned   x0, 
     unsigned   y0,
@@ -281,7 +281,7 @@ static void tixel_draw_line(
     TixelColor color
 );
 // Draw a filled in rectangle
-static void tixel_draw_rectangle(
+extern void tixel_draw_rectangle(
     Tixel*     self, 
     unsigned   x, 
     unsigned   y,
@@ -290,7 +290,7 @@ static void tixel_draw_rectangle(
     TixelColor color
 );
 // Draw the lines of a rectangle
-static void tixel_draw_rectangle_lines(
+extern void tixel_draw_rectangle_lines(
     Tixel*     self, 
     unsigned   x, 
     unsigned   y, 
@@ -299,7 +299,7 @@ static void tixel_draw_rectangle_lines(
     TixelColor color
 );
 // Draw a filled in triangle
-static void tixel_draw_triangle(
+extern void tixel_draw_triangle(
     Tixel*     self, 
     unsigned   x0, 
     unsigned   y0, 
@@ -310,7 +310,7 @@ static void tixel_draw_triangle(
     TixelColor color
 );
 // Draw the lines of triangle
-static void tixel_draw_triangle_lines(
+extern void tixel_draw_triangle_lines(
     Tixel*   self, 
     unsigned   x0, 
     unsigned   y0, 
@@ -324,7 +324,7 @@ static void tixel_draw_triangle_lines(
  * Event handling functions
  */
 // See if an event has occured
-static int tixel_poll_event(Tixel* self, TixelEvent* event);
+extern int tixel_poll_event(Tixel* self, TixelEvent* event);
 
 /*
  * Provide the bodies for the functions
@@ -339,7 +339,7 @@ static int tixel_poll_event(Tixel* self, TixelEvent* event);
 /*
  * Initialisation and de-initialisation function bodies
  */
-static int tixel_init(Tixel* self, unsigned width, unsigned height) {
+int tixel_init(Tixel* self, unsigned width, unsigned height) {
     // Set width and height
     self->width  = width;
     self->height = height;
@@ -374,7 +374,7 @@ static int tixel_init(Tixel* self, unsigned width, unsigned height) {
     return TIXEL_OK;
 }
 
-static int tixel_deinit(Tixel* self) {
+int tixel_deinit(Tixel* self) {
     // Exit raw mode, clear terminal and show cursor
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &self->orig_state) == -1)
         return TIXEL_ERROR_FAILED_RESTORE_ORIG_STATE;
@@ -393,7 +393,7 @@ static int tixel_deinit(Tixel* self) {
  * Primative drawing function definitions
  */
 // Displays the pixel buffer
-static void tixel_show(Tixel* self) {
+void tixel_show(Tixel* self) {
     // Clear the terminal and hide the cursor
     printf("\x1b[0m\x1b[H\x1b[3J\x1b[?25l");
 
@@ -422,13 +422,13 @@ static void tixel_show(Tixel* self) {
 }
 
 // Clear the pixel buffer with a color
-static void tixel_clear(Tixel* self, TixelColor color) {
+void tixel_clear(Tixel* self, TixelColor color) {
     for (unsigned i = 0; i < self->width * self->height; i++)
         self->pixels[i] = color;
 }
 
 // Draw a pixel
-static void tixel_draw_pixel(
+void tixel_draw_pixel(
     Tixel*     self, 
     unsigned   x, 
     unsigned   y, 
@@ -439,7 +439,7 @@ static void tixel_draw_pixel(
 }
 
 // Copy a buffer to the pixel buffer with an offset
-static void tixel_draw_buffer(
+void tixel_draw_buffer(
     Tixel*         self, 
     unsigned       x_off, 
     unsigned       y_off,
@@ -465,7 +465,7 @@ static void tixel_draw_buffer(
  * Shape drawing function definitions
  */
 // Draw a line
-static void tixel_draw_line(
+void tixel_draw_line(
     Tixel*     self, 
     unsigned   x0, 
     unsigned   y0,
@@ -473,9 +473,9 @@ static void tixel_draw_line(
     unsigned   y1, 
     TixelColor color
 ) {
-    int x_diff = abs(x1 - x0);
+    int x_diff = abs((int)(x1 - x0));
     int x_inc  = x0 < x1 ? 1 : -1;
-    int y_diff = -abs(y1 - y0);
+    int y_diff = -abs((int)(y1 - y0));
     int y_inc  = y0 < y1 ? 1 : -1;
     int error  = x_diff + y_diff;
 
@@ -501,7 +501,7 @@ static void tixel_draw_line(
 }
 
 // Draw a filled in rectangle
-static void tixel_draw_rectangle(
+void tixel_draw_rectangle(
     Tixel*     self, 
     unsigned   x, 
     unsigned   y,
@@ -517,7 +517,7 @@ static void tixel_draw_rectangle(
 }
 
 // Draw the lines of a rectangle
-static void tixel_draw_rectangle_lines(
+void tixel_draw_rectangle_lines(
     Tixel*     self, 
     unsigned   x, 
     unsigned   y, 
@@ -542,7 +542,7 @@ static void tixel_draw_rectangle_lines(
 }
 
 // Draw a filled in triangle
-static void tixel_draw_triangle(
+void tixel_draw_triangle(
     Tixel*     self, 
     unsigned   x0, 
     unsigned   y0, 
@@ -590,7 +590,7 @@ static void tixel_draw_triangle(
 }
 
 // Draw the lines of triangle
-static void tixel_draw_triangle_lines(
+void tixel_draw_triangle_lines(
     Tixel*   self, 
     unsigned   x0, 
     unsigned   y0, 
@@ -609,7 +609,7 @@ static void tixel_draw_triangle_lines(
  * Event handling functions
  */
 // See if an event has occured
-static int tixel_poll_event(Tixel* self, TixelEvent* event) {
+int tixel_poll_event(Tixel* self, TixelEvent* event) {
     // Reset event struct
     memset(event, 0, sizeof(TixelEvent));
 
